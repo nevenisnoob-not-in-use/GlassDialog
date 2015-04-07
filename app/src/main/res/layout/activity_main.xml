@@ -10,11 +10,11 @@
 
     <jp.co.drecom.glassdialog.GlassDialog
         android:id="@+id/glass"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-
-
-        custom:glassTextSize="24sp"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:visibility="gone"
+        custom:glassDialogSize="80dp"
+        custom:glassTextSize="16sp"
         custom:glassTextTitle="Title"
         custom:glassTextContent="Content" />
 

@@ -31,6 +31,7 @@ public class MainActivity extends ActionBarActivity{
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+
         if (event.getAction() == MotionEvent.ACTION_UP) {
             //TODO
             //generate the glass dialog

@@ -1,5 +1,6 @@
 package jp.co.drecom.glassdialog;
 
+import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
 import android.content.Context;
@@ -30,18 +31,24 @@ public class GlassDialog extends View {
     private float mTextWidth;
     private float mTextHeight;
 
-    private ObjectAnimator mScaleAnim;
-    private PropertyValuesHolder mScaleX;
-    private PropertyValuesHolder mScaleY;
+    private ObjectAnimator mScaleUpAnim;
+    private PropertyValuesHolder mScaleUpX;
+    private PropertyValuesHolder mScaleUpY;
 
-
-
+//    private ScaleAnimation mScaleDownAnim;
+    private ObjectAnimator mScaleDownAnim;
+    private PropertyValuesHolder mScaleDownX;
+    private PropertyValuesHolder mScaleDownY;
 
 
     //customize attribute
     private String mTextTitle;
     private String mTextContent;
     private float mTextSize = 0;
+
+
+
+    private float mDialogSize = 0;
     private float mTouchPointX;
     private float mTouchPointY;
 
@@ -68,6 +75,10 @@ public class GlassDialog extends View {
 
         this.context = context;
 
+        mDialogSize = a.getDimension(R.styleable.GlassDialog_glassDialogSize, 0);
+        //same
+//        Log.v("TAG", "mDialogSize in dp is " + a.getDimension(R.styleable.GlassDialog_glassDialogSize,0));
+        Log.v("TAG", "mDialogSize in pixel is " + mDialogSize);
         mTextTitle = a.getString(
                 R.styleable.GlassDialog_glassTextTitle);
         mTextContent = a.getString(
@@ -85,13 +96,28 @@ public class GlassDialog extends View {
         //TODO
         //init the animation
 
-        mScaleX = PropertyValuesHolder.ofFloat("scaleX",0.0f, 1.2f, 1.0f, 1.1f, 1.0f);
-        mScaleY = PropertyValuesHolder.ofFloat("scaleY",0.0f, 1.2f, 1.0f, 1.1f, 1.0f);
-        mScaleAnim = ObjectAnimator.ofPropertyValuesHolder(this,mScaleX,mScaleY);
-        mScaleAnim.setDuration(500);
+        mScaleUpX = PropertyValuesHolder.ofFloat("scaleX",0.0f, 1.2f, 1.0f, 1.1f, 1.0f);
+        mScaleUpY = PropertyValuesHolder.ofFloat("scaleY",0.0f, 1.2f, 1.0f, 1.1f, 1.0f);
+
+        mScaleDownX = PropertyValuesHolder.ofFloat("scaleX", 1.0f, 1.2f, 0.0f);
+        mScaleDownY = PropertyValuesHolder.ofFloat("scaleY", 1.0f, 1.2f, 0.0f);
+
+
+        mScaleUpAnim = ObjectAnimator.ofPropertyValuesHolder(this,mScaleUpX,mScaleUpY);
+        mScaleUpAnim.setDuration(500);
+
+//        mScaleDownAnim = new ScaleAnimation(1.0f,0.0f,1.0f,0.0f,
+//                Animation.RELATIVE_TO_SELF,
+//                0.5f,
+//                Animation.RELATIVE_TO_SELF,
+//                0.5f);
+//        mScaleDownAnim.setDuration(500);
+        mScaleDownAnim = ObjectAnimator.ofPropertyValuesHolder(this, mScaleDownX, mScaleDownY);
+        mScaleDownAnim.setDuration(300);
 
         // Update TextPaint and text measurements from attributes
         invalidateTextPaintAndMeasurements();
+
     }
 
     private void invalidateTextPaintAndMeasurements() {
@@ -117,8 +143,6 @@ public class GlassDialog extends View {
         Log.v("TAG", "width is " + getWidth() + " height is " + getHeight());
         int contentHeight = getHeight() - paddingTop - paddingBottom;
 
-
-
         // Draw the example drawable on top of the text.
         if (mBackgroundDrawable != null) {
             mBackgroundDrawable.setBounds(paddingLeft, paddingTop,
@@ -132,64 +156,106 @@ public class GlassDialog extends View {
                 paddingLeft + (contentWidth - mTextWidth) / 2,
                 paddingTop + (contentHeight + mTextHeight) / 2,
                 mTextPaint);
-        canvas.drawText(mTextContent,
-                mTextWidth + paddingLeft + (contentWidth - mTextWidth) / 2,
-                mTextHeight + paddingTop + (contentHeight + mTextHeight) / 2,
-                mTextPaint);
+//        canvas.drawText(mTextContent,
+//                mTextWidth + paddingLeft + (contentWidth - mTextWidth) / 2,
+//                mTextHeight + paddingTop + (contentHeight + mTextHeight) / 2,
+//                mTextPaint);
 
 
 
     }
 
     public void startAnim(MotionEvent event) {
-        Log.v("TAG", "left is " + getX() + " top is " + getY());
+        if (getVisibility() == GONE) {
+            setVisibility(VISIBLE);
 
-        setX((int) event.getX());
-        //should minus the action bar height + status bar height
-        setY((int) event.getY());
+            Log.v("TAG", "before set");
+            Log.v("TAG", "left is " + getX() + " top is " + getY());
+            Log.v("TAG", "width is " + getWidth() + " height is " + getHeight());
+            int locationOnScreen[] = new int[2];
+            getLocationOnScreen(locationOnScreen);
+//        int locationInWindow[] = new int[2];
+//        getLocationInWindow(locationInWindow);
 
-        Log.v("TAG", "left is " + getX() + " top is " + getY());
+            int dValueY = locationOnScreen[1] - (int)getY();
+
+//            int dValueCenterX = getWidth()/2;
+
+
+            Log.v("TAG", "location on screen is " + locationOnScreen[0] + " , " + locationOnScreen[1]);
+//        Log.v("TAG", "location in window is " + locationInWindow[0] + " , " + locationInWindow[1]);
+
+            setX((int) event.getX() - getWidth()/2);
+            //should minus the action bar height + status bar height
+            setY((int) event.getY() - dValueY);
+            Log.v("TAG", "after set");
+            Log.v("TAG", "left is " + getX() + " top is " + getY());
+            getLocationOnScreen(locationOnScreen);
+//        getLocationInWindow(locationInWindow);
+            Log.v("TAG", "location on screen is " + locationOnScreen[0] + " , " + locationOnScreen[1]);
+//        Log.v("TAG", "location in window is " + locationInWindow[0] + " , " + locationInWindow[1]);
 //        startAnimation(mScaleAnim);
-        mScaleAnim.start();
+            mScaleUpAnim.start();
+        } else {
+
+            mScaleDownAnim.start();
+            mScaleDownAnim.addListener(new Animator.AnimatorListener() {
+
+                @Override
+                public void onAnimationStart(Animator animation) {
+
+                }
+
+
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    setVisibility(GONE);
+                }
+
+                @Override
+                public void onAnimationCancel(Animator animation) {
+
+                }
+
+                @Override
+                public void onAnimationRepeat(Animator animation) {
+
+                }
+            });
+        }
+
     }
 
-    /**
-     * Gets the example string attribute value.
-     *
-     * @return The example string attribute value.
-     */
+
     public String getTextTile() {
         return mTextTitle;
     }
 
-    /**
-     * Sets the view's example string attribute value. In the example view, this string
-     * is the text to draw.
-     *
-     * @param exampleString The example string attribute value to use.
-     */
+
     public void setTextTitle(String exampleString) {
         mTextTitle = exampleString;
         invalidateTextPaintAndMeasurements();
     }
 
-    /**
-     * Gets the content attribute value.
-     *
-     * @return The content attribute value.
-     */
+
     public String getTextContent() {
         return mTextContent;
     }
 
-    /**
-     * Sets the view's content attribute value.
-     *
-     * @param exampleString The content attribute value to use.
-     */
+
     public void setTextContent(String exampleString) {
         mTextContent = exampleString;
         invalidateTextPaintAndMeasurements();
     }
+
+    public float getDialogSize() {
+        return mDialogSize;
+    }
+
+    public void setDialogSize(float mDialogSize) {
+        this.mDialogSize = mDialogSize;
+    }
+
+
 
 }
